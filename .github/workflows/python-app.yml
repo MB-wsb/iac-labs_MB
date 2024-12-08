@@ -1,4 +1,4 @@
-name: CI MB
+name: CI
 
 on:
   push:
@@ -7,38 +7,79 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  setup:
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'  
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          
+      - name: Install Dependencies
+        working-directory: ./example-app
+        run: poetry install --no-root
+      - name: Cache build venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/work/<path>/example-app/.venv
+          key: ${{ runner.os }}-venv
+          
+  static_tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test_type: ['lint', 'formatter', 'security']
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          
+      - name: Install Dependencies
+        working-directory: ./example-app
+        run: poetry install --no-root
         
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Run ${{ matrix.test_type }}
+        working-directory: ./example-app
+        run: poetry run task ${{ matrix.test_type }}
+
+  unit_tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          
+      - name: Install Dependencies
+        working-directory: ./example-app
+        run: poetry install --no-root
         
-    - name: Install Dependencies
-      working-directory: ./example-app
-      run: poetry install --no-root
-      
-    - name: Run Static Code Analysis (Lint)
-      working-directory: ./example-app
-      run: poetry run task lint
-      
-    - name: Run Security Tests
-      working-directory: ./example-app
-      run: poetry run task security
-      
-    - name: Run Unit Tests
-      working-directory: ./example-app
-      run: poetry run task test
-      
-    - name: Run Code Formatter
-      working-directory: ./example-app
-      run: poetry run task formatter
+      - name: Run Unit Tests
+        working-directory: ./example-app
+        run: poetry run task test
+        
