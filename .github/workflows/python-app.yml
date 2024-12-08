@@ -26,7 +26,12 @@ jobs:
 
       - name: Install Poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+          if [ $RUNNER_OS == 'Windows' ]; then
+            Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py
+            python install-poetry.py
+          else
+            curl -sSL https://install.python-poetry.org | python3 -
+          fi
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install Dependencies
@@ -58,11 +63,9 @@ jobs:
       - name: Install Poetry
         run: |
           if [ $RUNNER_OS == 'Windows' ]; then
-            # Install Poetry on Windows using PowerShell
             Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py
             python install-poetry.py
           else
-            # Install Poetry on Linux/macOS using bash
             curl -sSL https://install.python-poetry.org | python3 -
           fi
           echo "$HOME/.local/bin" >> $GITHUB_PATH
@@ -92,11 +95,9 @@ jobs:
       - name: Install Poetry
         run: |
           if [ $RUNNER_OS == 'Windows' ]; then
-            # Install Poetry on Windows using PowerShell
             Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py
             python install-poetry.py
           else
-            # Install Poetry on Linux/macOS using bash
             curl -sSL https://install.python-poetry.org | python3 -
           fi
           echo "$HOME/.local/bin" >> $GITHUB_PATH
