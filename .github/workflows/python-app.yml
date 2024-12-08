@@ -12,9 +12,7 @@ jobs:
   some-name:
     runs-on: ubuntu-latest  
 
-    defaults:
-      run:
-        working-directory: ./example-app  
+    
 
     steps:
       - name: Checkout repository
@@ -31,6 +29,7 @@ jobs:
 
       - name: Install dependencies with Poetry
         run: |
+        working-directory: ./example-app  
           poetry install 
 
       - name: Run tests
