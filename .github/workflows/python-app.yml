@@ -9,13 +9,10 @@ on:
 defaults:
   run:
     shell: bash  
-    
+
 jobs:
   setup:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -25,7 +22,14 @@ jobs:
           python-version: '3.11'
 
       - name: Install Poetry
-        uses: python-poetry-action@v2
+        run: |
+          if [ $RUNNER_OS == 'Windows' ]; then
+            powershell -Command "Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py; python install-poetry.py"
+            echo "$env:USERPROFILE\\.poetry\\bin" >> $env:GITHUB_PATH
+          else
+            curl -sSL https://install.python-poetry.org | python3 -
+          fi
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install Dependencies
         working-directory: ./example-app
@@ -36,7 +40,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./example-app/.venv
-          key: ${{ runner.os }}-venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('**/*.py') }}
 
   static_tests:
     needs: setup
@@ -52,16 +56,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
-      - name: Install Poetry
-        run: |
-          if [ $RUNNER_OS == 'Windows' ]; then
-            powershell -Command "Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py"
-            powershell -Command "python install-poetry.py"
-          else
-            curl -sSL https://install.python-poetry.org | python3 -
-          fi
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install Dependencies
         working-directory: ./example-app
@@ -84,16 +78,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
-      - name: Install Poetry
-        run: |
-          if [ $RUNNER_OS == 'Windows' ]; then
-            powershell -Command "Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py"
-            powershell -Command "python install-poetry.py"
-          else
-            curl -sSL https://install.python-poetry.org | python3 -
-          fi
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install Dependencies
         working-directory: ./example-app
