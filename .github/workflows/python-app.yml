@@ -11,14 +11,6 @@ defaults:
     shell: bash  
     
 jobs:
-  example_matrix:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/setup-node@v4
-
   setup:
     runs-on: ubuntu-latest
     steps:
