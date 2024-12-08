@@ -25,14 +25,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install Poetry
-        run: |
-          if [ $RUNNER_OS == 'Windows' ]; then
-            powershell -Command "Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py"
-            powershell -Command "python install-poetry.py"
-          else
-            curl -sSL https://install.python-poetry.org | python3 -
-          fi
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        uses: python-poetry-action@v2
 
       - name: Install Dependencies
         working-directory: ./example-app
