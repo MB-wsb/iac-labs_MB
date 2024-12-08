@@ -8,24 +8,32 @@ on:
 
 defaults:
   run:
-    shell: bash
+    shell: bash  
     
-jobs:     
+jobs:
+  example_matrix:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/setup-node@v4
+
   setup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          
+
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          
+
       - name: Install Dependencies
         working-directory: ./example-app
         run: poetry install --no-root
@@ -36,31 +44,38 @@ jobs:
         with:
           path: ./example-app/.venv
           key: ${{ runner.os }}-venv
-          
+
   static_tests:
     needs: setup
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]  
+        os: [ubuntu-latest, windows-latest]
         test_type: ['lint', 'formatter', 'security']
-    runs-on: ${{ matrix.os }}  # Uruchamiamy na odpowiednim systemie
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          
+
       - name: Install Poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+          if [ $RUNNER_OS == 'Windows' ]; then
+            # Install Poetry on Windows using PowerShell
+            Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py
+            python install-poetry.py
+          else
+            # Install Poetry on Linux/macOS using bash
+            curl -sSL https://install.python-poetry.org | python3 -
+          fi
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          
+
       - name: Install Dependencies
         working-directory: ./example-app
         run: poetry install --no-root
-        
+
       - name: Run ${{ matrix.test_type }}
         working-directory: ./example-app
         run: poetry run task ${{ matrix.test_type }}
@@ -69,25 +84,32 @@ jobs:
     needs: setup
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest] 
-    runs-on: ${{ matrix.os }}  
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          
+
       - name: Install Poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+          if [ $RUNNER_OS == 'Windows' ]; then
+            # Install Poetry on Windows using PowerShell
+            Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py
+            python install-poetry.py
+          else
+            # Install Poetry on Linux/macOS using bash
+            curl -sSL https://install.python-poetry.org | python3 -
+          fi
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          
+
       - name: Install Dependencies
         working-directory: ./example-app
         run: poetry install --no-root
-        
+
       - name: Run Unit Tests
         working-directory: ./example-app
         run: poetry run task test
