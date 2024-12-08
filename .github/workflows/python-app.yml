@@ -1,37 +1,44 @@
-name: CI/CD TestMB
+name: CI
 
 on:
   push:
-    branches:
-      - main  
+    branches: [ main ]
   pull_request:
-    branches:
-      - main  
+    branches: [ main ]
 
 jobs:
-  some-name:
-    runs-on: ubuntu-latest  
-
+  test:
+    runs-on: ubuntu-latest
     
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'  
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -  
-
-      - name: Install dependencies with Poetry
-        run: |
-        working-directory: ./example-app  
-          poetry install 
-
-      - name: Run tests
-        run: |
-          poetry run pytest 
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'  # Zmieniono wersję z 3.10 na 3.11
+        
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+        
+    - name: Install Dependencies
+      working-directory: ./example-app
+      run: poetry install --no-root
+      
+    - name: Run Static Code Analysis (Lint)
+      working-directory: ./example-app
+      run: poetry run task lint
+      
+    - name: Run Security Tests
+      working-directory: ./example-app
+      run: poetry run task security
+      
+    - name: Run Unit Tests
+      working-directory: ./example-app
+      run: poetry run task test
+      
+    - name: Run Code Formatter
+      working-directory: ./example-app
+      run: poetry run task formatter
