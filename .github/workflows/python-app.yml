@@ -1,0 +1,38 @@
+name: CI/CD TestMB
+
+on:
+  push:
+    branches:
+      - main  # lub inna gałąź, na której chcesz uruchamiać workflow
+  pull_request:
+    branches:
+      - main  # uruchamiaj workflow także przy tworzeniu PR
+
+jobs:
+  some-name:
+    runs-on: ubuntu-latest  # Lub inny system operacyjny, np. 'windows-latest'
+
+    defaults:
+      run:
+        working-directory: ./example-app  # Ustawienie katalogu roboczego
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'  # Wybierz odpowiednią wersję Pythona
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -  # Instalacja Poetry
+
+      - name: Install dependencies with Poetry
+        run: |
+          poetry install  # Instalacja zależności z pliku pyproject.toml
+
+      - name: Run tests
+        run: |
+          poetry run pytest  # Uruchamianie testów przy użyciu Poetry
